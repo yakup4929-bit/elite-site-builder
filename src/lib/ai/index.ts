@@ -1,8 +1,29 @@
-import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Le client est cree A L'APPEL, pas au chargement du module.
+//
+// Instancie au niveau du module, il s'executait pendant `next build` : Next
+// importe ce fichier pour collecter la configuration de /api/generate, le
+// constructeur ne trouvait pas la cle et jetait « Missing credentials ». La
+// compilation reussissait, la collecte echouait — donc le deploiement aussi.
+//
+// Une cle d'API est un secret d'EXECUTION. La machine qui construit le site
+// n'a pas a la connaitre, et un deploiement ne doit pas dependre d'elle.
+let client: Anthropic | null = null;
+
+function anthropic(): Anthropic {
+  if (!client) {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      throw new Error(
+        "ANTHROPIC_API_KEY n'est pas definie. Ajoutez-la dans Vercel > " +
+        "Settings > Environment Variables, puis redeployez."
+      );
+    }
+    client = new Anthropic({ apiKey });
+  }
+  return client;
+}
 
 export async function generateSiteConfig(prompt: string, industry: string) {
   const systemPrompt = `
@@ -85,14 +106,20 @@ export async function generateSiteConfig(prompt: string, industry: string) {
     4. Output ONLY the raw JSON. No markdown, no comments.
   `;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4-turbo-preview",
+  // On force la reponse a commencer par « { » en pre-remplissant le tour de
+  // l'assistant. Sans cela le modele a tendance a encadrer le JSON de texte ou
+  // de balises markdown, et JSON.parse tombe sur une chaine invalide.
+  const reponse = await anthropic().messages.create({
+    model: "claude-sonnet-5",
+    max_tokens: 4096,
+    system: systemPrompt,
     messages: [
-      { role: "system", content: systemPrompt },
       { role: "user", content: prompt },
+      { role: "assistant", content: "{" },
     ],
-    response_format: { type: "json_object" },
   });
 
-  return JSON.parse(response.choices[0].message.content || "{}");
+  const morceau = reponse.content[0];
+  const suite = morceau && morceau.type === "text" ? morceau.text : "";
+  return JSON.parse("{" + suite);
 }

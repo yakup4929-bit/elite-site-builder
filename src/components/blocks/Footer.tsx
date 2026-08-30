@@ -26,7 +26,7 @@ export const Footer: React.FC<FooterProps> = ({ block, config }) => {
             <a href="#" className="hover:text-slate-900 dark:hover:text-white transition-colors">Cookies</a>
           </div>
           <div className="text-slate-500 dark:text-slate-400 text-sm">
-            © {new Date().getFullYear()} All rights reserved.
+            Â© {new Date().getFullYear()} All rights reserved.
           </div>
         </div>
       </div>
