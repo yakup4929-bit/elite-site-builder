@@ -174,6 +174,11 @@ export interface GenerateOptions {
   /** Ignored on plans without toneControl. */
   tone?: string;
   density?: string;
+  /**
+   * Thinking depth. Output tokens dominate the cost of a generation and
+   * thinking bills as output, so this is the largest cost lever available.
+   */
+  effort?: "low" | "medium" | "high" | "xhigh" | "max";
 }
 
 /**
@@ -248,6 +253,7 @@ export async function generateSiteConfig(options: GenerateOptions): Promise<Gene
     messages: [{ role: "user", content: options.prompt }],
     output_config: {
       format: { type: "json_schema", schema: buildSchema(locales, blockTypes) },
+      effort: options.effort ?? "high",
     },
   });
 

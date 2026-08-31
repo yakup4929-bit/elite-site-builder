@@ -12,7 +12,7 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { prompt, industry, locales, defaultLocale, planId, tone, density } = body ?? {};
+    const { prompt, industry, locales, defaultLocale, planId, tone, density, effort } = body ?? {};
 
     if (typeof prompt !== "string" || prompt.trim() === "") {
       return NextResponse.json({ error: "prompt is required" }, { status: 400 });
@@ -26,6 +26,7 @@ export async function POST(req: Request) {
       planId: isPlanId(planId) ? planId : DEFAULT_PLAN,
       tone: typeof tone === "string" ? tone : undefined,
       density: typeof density === "string" ? density : undefined,
+      effort: ["low", "medium", "high", "xhigh", "max"].includes(effort) ? effort : undefined,
     });
 
     return NextResponse.json(result);
