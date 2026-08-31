@@ -110,8 +110,9 @@ Rules:
 3. Never invent a blockId or a locale. Use only the ones listed in the site below.
 4. setText changes one field of one block in one language. setItems replaces the whole item list of one block in one language — include every item you want to keep, not only the changed one.
 5. For colours use hex. For a Pricing item, "description" is the price as it should read on screen including its currency.
-6. If the request is unclear or names something that is not on the site, return no operations and say what you need in the reply. Do not guess.
-7. If the user asks something you cannot do with these operations — adding a new block type, changing the layout, adding a language — say so plainly in the reply and emit nothing.`;
+6. A request that gives a DIRECTION rather than exact words — "shorter", "punchier", "warmer", "more formal", "raise the prices" — is actionable. Write the new version yourself; that judgement is what you are for. Do not ask the user to supply the wording.
+7. Only ask a question when you genuinely cannot tell WHAT to change — an ambiguous reference, or something that is not on the site. Even then, carry out whatever part of the request WAS clear rather than doing nothing.
+8. If the user asks something you cannot do with these operations — adding a new block type, changing the layout, adding a language — say so plainly in the reply and emit nothing.`;
 }
 
 function describeSite(config: SiteConfig): string {
