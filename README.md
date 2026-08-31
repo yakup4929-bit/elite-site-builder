@@ -162,11 +162,25 @@ for f in $(find src -name '*.ts*'); do iconv -f UTF-8 -t UTF-8 "$f" >/dev/null 2
 
 Düzeltme: `iconv -f CP1254 -t UTF-8 dosya > tmp && mv tmp dosya`
 
+## Neler var
+
+- **Kalıcılık.** Üretilen siteler kaydediliyor, listeleniyor, silinebiliyor. Şu an
+  tarayıcı deposunda: başka cihazda görünmez, site verisi silinirse kaybolur. Saklanan
+  yapı bir sunucu deposunun kullanacağı yapı, yani geçiş backend değişikliği olacak.
+- **Sohbetle düzenleme.** Önizlemenin yanındaki panelde ne istediğini yazıyorsun,
+  uygulanıyor. `claude-sonnet-5` üzerinde, tur başına ~$0,004.
+  Model yeniden yazılmış config değil **işlem listesi** döndürüyor; böylece adı geçmeyen
+  hiçbir şey değişemiyor. Gelen işlemler doğrulanıyor: olmayan blok id'si, sitede
+  bulunmayan dil, hex olmayan renk ve sayfayı boşaltacak silme reddediliyor.
+- **Maliyet ölçümü.** Her üretim ve düzenlemenin token'ı sayılıyor, site başına ve
+  toplam harcama arayüzde görünüyor.
+
 ## Bilinen eksikler
 
-- **Kalıcılık yok.** Üretilen site sayfa yenilenince kayboluyor.
-- **Blok yenileme henüz kodda yok.** Paket sınırı (`regenerateBlock`) tanımlı ama
-  arayüz/endpoint tarafı yazılmadı.
-- **Görseller.** `About` bloğu sabit bir Unsplash görseline düşüyor; modele URL
-  uydurtmak 404 verdiği için prompt'tan çıkarıldı. Gerçek çözüm Unsplash API'siyle
-  anahtar kelimeden arama.
+- **Site içi AI yok.** Müşteri sitelerinin kendi AI özellikleri (devis üretimi, asistan)
+  henüz yazılmadı. Maliyet ve hukuk analizi yapıldı: bu özellik kredi sayacı ve onay
+  akışı olmadan açılmamalı.
+- **Gerçek veritabanı yok.** Vercel Storage hesapta provizyon edilmeli.
+- **6 dil üretimi ~240 saniye sürüyor.** Dilleri paralel isteklerde üretmek süreyi
+  yaklaşık altıya böler.
+- **Görseller.** About bloğu tek bir sabit Unsplash görseline düşüyor.
