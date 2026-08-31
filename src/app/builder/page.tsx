@@ -1,27 +1,74 @@
-
 "use client";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { SiteConfig } from "@/types";
-import { BlockRenderer } from "@/components/BlockRenderer";
-import { Loader2, Sparkles } from "lucide-react";
+import { SitePreview } from "@/components/SitePreview";
+import { Loader2, Sparkles, X, Plus, AlertCircle } from "lucide-react";
+import { LOCALE_CATALOGUE, describeLocale, isValidLocaleTag } from "@/lib/i18n/locales";
+import { DEFAULT_UI_LOCALE, UI_LOCALES, t, type UiLocale } from "@/lib/i18n/ui";
+import { PLANS, PLAN_ORDER, DEFAULT_PLAN, planName, planTagline, type PlanId } from "@/lib/plans";
 
 export default function BuilderPage() {
+  const [uiLocale, setUiLocale] = useState<UiLocale>(DEFAULT_UI_LOCALE);
+  const [planId, setPlanId] = useState<PlanId>(DEFAULT_PLAN);
   const [prompt, setPrompt] = useState("");
   const [industry, setIndustry] = useState("");
+  const [siteLocales, setSiteLocales] = useState<string[]>(["tr"]);
+  const [localeDraft, setLocaleDraft] = useState("");
   const [config, setConfig] = useState<SiteConfig | null>(null);
+  const [rejected, setRejected] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const plan = PLANS[planId];
+  const maxLocales = plan.limits.maxLocales;
+  const canChooseLocales = plan.limits.choosableLocales;
+  const localeSlotsLeft = maxLocales === "all" ? Infinity : maxLocales - siteLocales.length;
+
+  // The first entry is the primary language; the rest follow it.
+  const effectiveLocales = useMemo(
+    () => (canChooseLocales ? siteLocales : plan.limits.fixedLocales),
+    [canChooseLocales, siteLocales, plan],
+  );
+
+  const addLocale = (tag: string) => {
+    const trimmed = tag.trim();
+    if (!trimmed || !isValidLocaleTag(trimmed)) return;
+    if (siteLocales.some((l) => l.toLowerCase() === trimmed.toLowerCase())) return;
+    if (localeSlotsLeft <= 0) return;
+    setSiteLocales((prev) => [...prev, trimmed]);
+    setLocaleDraft("");
+  };
+
+  const removeLocale = (tag: string) => {
+    // Keep at least one language — a site with none cannot be generated.
+    setSiteLocales((prev) => (prev.length > 1 ? prev.filter((l) => l !== tag) : prev));
+  };
 
   const handleGenerate = async () => {
     setLoading(true);
+    setError(null);
+    setRejected([]);
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
-        body: JSON.stringify({ prompt, industry }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt,
+          industry,
+          locales: effectiveLocales,
+          defaultLocale: effectiveLocales[0],
+          planId,
+        }),
       });
       const data = await res.json();
-      setConfig(data);
+      if (!res.ok) {
+        setError(data?.error ?? `HTTP ${res.status}`);
+        return;
+      }
+      setConfig(data.config);
+      setRejected(data.rejectedLocales ?? []);
     } catch (err) {
-      alert("Bir hata olustu.");
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
@@ -29,52 +76,160 @@ export default function BuilderPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-      {/* Control Panel */}
-      <div className="fixed top-0 left-0 w-full h-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b z-50 px-6 flex items-center justify-between">
-        <div className="flex items-center gap-2 font-bold text-xl text-slate-800 dark:text-white">
-          <Sparkles className="text-yellow-500" /> Aeltay Studio
+      <div className="fixed top-0 left-0 w-full bg-white/85 dark:bg-slate-900/85 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 z-50">
+        <div className="px-6 py-3 flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-2 font-bold text-xl text-slate-800 dark:text-white shrink-0">
+            <Sparkles className="text-yellow-500" /> {t(uiLocale, "brand")}
+          </div>
+
+          <div className="flex gap-3 items-center flex-wrap flex-1 justify-end">
+            <input
+              type="text"
+              placeholder={t(uiLocale, "industryPlaceholder")}
+              className="px-4 py-2 rounded-lg border border-slate-300 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+              value={industry}
+              onChange={(e) => setIndustry(e.target.value)}
+            />
+            <input
+              type="text"
+              placeholder={t(uiLocale, "promptPlaceholder")}
+              className="px-4 py-2 rounded-lg border border-slate-300 dark:bg-slate-800 dark:border-slate-700 dark:text-white w-80"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+            />
+            <button
+              onClick={handleGenerate}
+              disabled={loading || prompt.trim() === ""}
+              className="px-6 py-2 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-lg font-medium hover:opacity-90 flex items-center gap-2 disabled:opacity-40"
+            >
+              {loading ? <Loader2 className="animate-spin" size={18} /> : null}
+              {loading ? t(uiLocale, "generating") : t(uiLocale, "generate")}
+            </button>
+          </div>
         </div>
-        <div className="flex gap-4">
-          <input 
-            type="text" 
-            placeholder="Sektör (Örn: Lüks Saat)" 
-            className="px-4 py-2 rounded-lg border dark:bg-slate-800 dark:border-slate-700 dark:text-white"
-            value={industry}
-            onChange={(e) => setIndustry(e.target.value)}
-          />
-          <input 
-            type="text" 
-            placeholder="Nasil bir site istersiniz?" 
-            className="px-4 py-2 rounded-lg border dark:bg-slate-800 dark:border-slate-700 dark:text-white w-80"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-          />
-          <button 
-            onClick={handleGenerate}
-            disabled={loading}
-            className="px-6 py-2 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-lg font-medium hover:opacity-90 flex items-center gap-2 disabled:opacity-50"
-          >
-            {loading ? <Loader2 className="animate-spin" size={18} /> : "Sihri Baslat"}
-          </button>
+
+        <div className="px-6 pb-3 flex items-start gap-6 flex-wrap text-sm">
+          <label className="flex items-center gap-2">
+            <span className="text-slate-500 dark:text-slate-400">{t(uiLocale, "plan")}</span>
+            <select
+              value={planId}
+              onChange={(e) => setPlanId(e.target.value as PlanId)}
+              className="px-2 py-1 rounded-md border border-slate-300 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+            >
+              {PLAN_ORDER.map((id) => (
+                <option key={id} value={id}>
+                  {planName(PLANS[id], uiLocale)} · {PLANS[id].price.monthly}
+                  {PLANS[id].price.currency === "EUR" ? "€" : " " + PLANS[id].price.currency}
+                </option>
+              ))}
+            </select>
+            <span className="text-slate-400 hidden lg:inline">{planTagline(plan, uiLocale)}</span>
+          </label>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-slate-500 dark:text-slate-400">{t(uiLocale, "languages")}</span>
+            {effectiveLocales.map((tag, index) => (
+              <span
+                key={tag}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 dark:text-white"
+              >
+                {describeLocale(tag).nativeName}
+                {index === 0 && (
+                  <span className="text-xs text-slate-400">({t(uiLocale, "primaryLanguage")})</span>
+                )}
+                {canChooseLocales && effectiveLocales.length > 1 && (
+                  <button type="button" onClick={() => removeLocale(tag)} aria-label={"remove " + tag}>
+                    <X size={12} className="text-slate-400 hover:text-slate-900 dark:hover:text-white" />
+                  </button>
+                )}
+              </span>
+            ))}
+
+            {canChooseLocales ? (
+              localeSlotsLeft > 0 && (
+                <span className="inline-flex items-center gap-1">
+                  <input
+                    list="locale-catalogue"
+                    value={localeDraft}
+                    onChange={(e) => setLocaleDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addLocale(localeDraft);
+                      }
+                    }}
+                    placeholder={t(uiLocale, "addLanguage")}
+                    className="px-2 py-1 w-40 rounded-md border border-slate-300 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => addLocale(localeDraft)}
+                    className="p-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
+                    aria-label={t(uiLocale, "addLanguage")}
+                  >
+                    <Plus size={14} className="text-slate-500" />
+                  </button>
+                  <datalist id="locale-catalogue">
+                    {LOCALE_CATALOGUE.map((l) => (
+                      <option key={l.code} value={l.code}>
+                        {l.nativeName}{" — "}{l.englishName}
+                      </option>
+                    ))}
+                  </datalist>
+                </span>
+              )
+            ) : (
+              <span className="text-slate-400 italic">{t(uiLocale, "planLocked")}</span>
+            )}
+          </div>
+
+          <label className="flex items-center gap-2 ml-auto">
+            <span className="text-slate-500 dark:text-slate-400">{t(uiLocale, "interfaceLanguage")}</span>
+            <select
+              value={uiLocale}
+              onChange={(e) => setUiLocale(e.target.value as UiLocale)}
+              className="px-2 py-1 rounded-md border border-slate-300 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+            >
+              {UI_LOCALES.map((code) => (
+                <option key={code} value={code}>
+                  {describeLocale(code).nativeName}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
       </div>
 
-      {/* Preview Area */}
-      <div className="pt-20 min-h-screen">
+      <div className="pt-36 min-h-screen">
+        {error && (
+          <div className="mx-6 mb-4 flex items-start gap-2 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-900">
+            <AlertCircle size={18} className="shrink-0 mt-0.5" />
+            <div>
+              <strong>{t(uiLocale, "errorPrefix")}:</strong> {error}
+            </div>
+          </div>
+        )}
+
+        {rejected.length > 0 && (
+          <div className="mx-6 mb-4 px-4 py-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900">
+            {t(uiLocale, "localesDropped")}{" "}
+            {rejected.map((tag) => describeLocale(tag).nativeName).join(", ")}
+          </div>
+        )}
+
         {config ? (
           <div className="shadow-2xl ring-1 ring-slate-200 dark:ring-slate-800 bg-white dark:bg-slate-950">
-            {config.blocks.map((block) => (
-              <BlockRenderer key={block.id} block={block} config={config} />
-            ))}
+            <SitePreview config={config} />
           </div>
         ) : (
-          <div className="h-[calc(100vh-5rem)] flex flex-col items-center justify-center text-slate-400">
-            <Sparkles size={48} className="mb-4 opacity-20" />
-            <p className="text-xl">Hayalinizdeki siteyi olusturmak için yukariya direktiflerinizi yazin.</p>
-          </div>
+          !error && (
+            <div className="h-[calc(100vh-12rem)] flex flex-col items-center justify-center text-slate-400">
+              <Sparkles size={48} className="mb-4 opacity-20" />
+              <p className="text-xl text-center px-6">{t(uiLocale, "emptyState")}</p>
+            </div>
+          )
         )}
       </div>
     </div>
   );
 }
-

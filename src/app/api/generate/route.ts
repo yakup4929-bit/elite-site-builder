@@ -1,18 +1,32 @@
 import { NextResponse } from "next/server";
 import { generateSiteConfig } from "@/lib/ai";
+import { isPlanId, DEFAULT_PLAN } from "@/lib/plans";
 
 export async function POST(req: Request) {
   if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json(
-      { error: "ANTHROPIC_API_KEY is not set. Add it to .env.local and restart the dev server." },
+      { error: "ANTHROPIC_API_KEY is not set. Add it to .env.local locally, and to the project's Environment Variables on Vercel." },
       { status: 500 },
     );
   }
 
   try {
-    const { prompt, industry } = await req.json();
-    const config = await generateSiteConfig(prompt, industry);
-    return NextResponse.json(config);
+    const body = await req.json();
+    const { prompt, industry, locales, defaultLocale, planId } = body ?? {};
+
+    if (typeof prompt !== "string" || prompt.trim() === "") {
+      return NextResponse.json({ error: "prompt is required" }, { status: 400 });
+    }
+
+    const result = await generateSiteConfig({
+      prompt,
+      industry: typeof industry === "string" ? industry : "",
+      locales: Array.isArray(locales) ? locales.filter((l) => typeof l === "string") : undefined,
+      defaultLocale: typeof defaultLocale === "string" ? defaultLocale : undefined,
+      planId: isPlanId(planId) ? planId : DEFAULT_PLAN,
+    });
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error("AI Generation Error:", error);
     const message = error instanceof Error ? error.message : "Failed to generate site";
