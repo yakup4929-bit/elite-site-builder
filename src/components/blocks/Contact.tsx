@@ -56,16 +56,16 @@ export const Contact: React.FC<ContactProps> = ({ block, config }) => {
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-sm text-slate-400">Name</label>
-                    <input type="text" className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/10 focus:outline-none focus:ring-2" style={{ ringColor: config.primaryColor }} />
+                    <input type="text" className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/10 focus:outline-none focus:ring-2" style={{ "--tw-ring-color": config.primaryColor } as React.CSSProperties} />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm text-slate-400">Email</label>
-                    <input type="email" className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/10 focus:outline-none focus:ring-2" style={{ ringColor: config.primaryColor }} />
+                    <input type="email" className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/10 focus:outline-none focus:ring-2" style={{ "--tw-ring-color": config.primaryColor } as React.CSSProperties} />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm text-slate-400">Message</label>
-                  <textarea rows={4} className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/10 focus:outline-none focus:ring-2" style={{ ringColor: config.primaryColor }} />
+                  <textarea rows={4} className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/10 focus:outline-none focus:ring-2" style={{ "--tw-ring-color": config.primaryColor } as React.CSSProperties} />
                 </div>
                 <button 
                   className="w-full py-4 rounded-xl font-bold text-white transition-all hover:scale-[1.02] active:scale-95"

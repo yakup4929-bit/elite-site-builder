@@ -32,12 +32,12 @@ export default function BuilderPage() {
       {/* Control Panel */}
       <div className="fixed top-0 left-0 w-full h-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b z-50 px-6 flex items-center justify-between">
         <div className="flex items-center gap-2 font-bold text-xl text-slate-800 dark:text-white">
-          <Sparkles className="text-yellow-500" /> Elite AI Builder
+          <Sparkles className="text-yellow-500" /> Aeltay Studio
         </div>
         <div className="flex gap-4">
           <input 
             type="text" 
-            placeholder="Sektör (Örn: Lüks Saat)" 
+            placeholder="SektÃ¶r (Ã–rn: LÃ¼ks Saat)" 
             className="px-4 py-2 rounded-lg border dark:bg-slate-800 dark:border-slate-700 dark:text-white"
             value={industry}
             onChange={(e) => setIndustry(e.target.value)}
@@ -70,7 +70,7 @@ export default function BuilderPage() {
         ) : (
           <div className="h-[calc(100vh-5rem)] flex flex-col items-center justify-center text-slate-400">
             <Sparkles size={48} className="mb-4 opacity-20" />
-            <p className="text-xl">Hayalinizdeki siteyi olusturmak için yukariya direktiflerinizi yazin.</p>
+            <p className="text-xl">Hayalinizdeki siteyi olusturmak iÃ§in yukariya direktiflerinizi yazin.</p>
           </div>
         )}
       </div>
