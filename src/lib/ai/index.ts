@@ -3,7 +3,20 @@ import type { BlockType, LocalizedContent, SiteBlock, SiteConfig } from "@/types
 import { describeLocale, normaliseLocales } from "@/lib/i18n/locales";
 import { applyLocaleQuota, getPlan, type Plan } from "@/lib/plans";
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+/**
+ * An identity-linked API key must say which workspace it acts in, or the API
+ * rejects the request with 400 `anthropic-workspace-id is required`. The SDK
+ * only picks ANTHROPIC_WORKSPACE_ID up through the profile/federation path, not
+ * from a plain `new Anthropic({ apiKey })`, so the header is set here. Ordinary
+ * workspace-scoped keys do not need it — the header is omitted when unset
+ * rather than sent empty, which would itself be rejected.
+ */
+const workspaceId = process.env.ANTHROPIC_WORKSPACE_ID?.trim();
+
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+  ...(workspaceId ? { defaultHeaders: { "anthropic-workspace-id": workspaceId } } : {}),
+});
 
 const ALL_BLOCK_TYPES: BlockType[] = ["Hero", "Features", "About", "Pricing", "Contact", "Footer"];
 

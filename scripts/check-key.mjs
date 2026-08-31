@@ -35,7 +35,15 @@ if (!key.startsWith("sk-ant-")) {
 
 console.log(`→ Key found (${key.length} chars, ending ...${key.slice(-4)}). Calling the API…`);
 
-const client = new Anthropic({ apiKey: key });
+// Identity-linked keys must name their workspace; ordinary keys must not send
+// the header at all, so it is included only when the variable is set.
+const workspaceId = process.env.ANTHROPIC_WORKSPACE_ID?.trim();
+if (workspaceId) console.log(`→ Using workspace ${workspaceId}.`);
+
+const client = new Anthropic({
+  apiKey: key,
+  ...(workspaceId ? { defaultHeaders: { "anthropic-workspace-id": workspaceId } } : {}),
+});
 
 try {
   const response = await client.messages.create({
@@ -72,7 +80,13 @@ try {
   } else if (error instanceof Anthropic.RateLimitError) {
     console.error("✗ Rate limited — the key is valid, just throttled right now.");
   } else if (error instanceof Anthropic.APIError) {
-    console.error(`✗ API error ${error.status}: ${error.message}`);
+    if (/workspace/i.test(error.message)) {
+      console.error("✗ This is an identity-linked key, so it must say which workspace it acts in.");
+      console.error("  Either add ANTHROPIC_WORKSPACE_ID next to the key, or create a plain");
+      console.error("  workspace-scoped key in the Console, which needs no extra setting.");
+    } else {
+      console.error(`✗ API error ${error.status}: ${error.message}`);
+    }
   } else {
     console.error(`✗ ${error instanceof Error ? error.message : String(error)}`);
   }

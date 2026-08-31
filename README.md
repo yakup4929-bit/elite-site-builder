@@ -67,6 +67,26 @@ Anahtar [Anthropic Console](https://console.anthropic.com/settings/keys) üzerin
 **Vercel'de ayrıca proje ayarlarındaki Environment Variables'a da eklenmeli** — yoksa
 deploy build'i geçer ama üretim isteği 500 döner. Route bu durumu açıkça bildiriyor.
 
+### Identity-linked anahtar kullanıyorsan
+
+Bazı anahtarlar hangi workspace adına çalıştığını da bildirmek zorunda. Bunu
+söylemezsen API şu hatayı döner:
+
+```
+400 anthropic-workspace-id is required when authenticating with
+    an identity-linked API key
+```
+
+İki çözümden birini seç:
+
+- `.env.local`'e (ve Vercel'e) `ANTHROPIC_WORKSPACE_ID=...` ekle. Workspace ID
+  Console'da URL'de görünür; gizli bir değer değil.
+- Ya da Console'dan **workspace'e bağlı düz bir anahtar** üret; o hiçbir ek ayar
+  istemez.
+
+Değişken tanımlıysa kod `anthropic-workspace-id` başlığını gönderiyor, tanımlı
+değilse hiç göndermiyor — boş göndermek de reddedilirdi.
+
 ```bash
 npm run dev      # http://localhost:3000
 npm run build    # production build (strict TS kontrolleri açık)
