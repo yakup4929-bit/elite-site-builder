@@ -1,7 +1,8 @@
-import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+import Anthropic from "@anthropic-ai/sdk";
+
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
 export async function generateSiteConfig(prompt: string, industry: string) {
@@ -82,17 +83,23 @@ export async function generateSiteConfig(prompt: string, industry: string) {
     1. Colors must be sophisticated and match the industry: ${industry}.
     2. Copy must be "Elite", "Professional", and "High-Converting".
     3. Use a consistent and logical flow of blocks.
-    4. Output ONLY the raw JSON. No markdown, no comments.
+    4. Output ONLY the raw JSON. No markdown, no intro, no outro, no comments.
   `;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4-turbo-preview",
+  const response = await anthropic.messages.create({
+    model: "claude-3-5-sonnet-20240620",
+    max_tokens: 4096,
+    system: systemPrompt,
     messages: [
-      { role: "system", content: systemPrompt },
       { role: "user", content: prompt },
     ],
-    response_format: { type: "json_object" },
   });
 
-  return JSON.parse(response.choices[0].message.content || "{}");
+  const content = response.content[0].type === "text" ? response.content[0].text : "{}";
+  
+  // Remove any possible markdown code blocks
+  const jsonString = content.replace(/```json|```/g, "").trim();
+  
+  return JSON.parse(jsonString);
 }
+
