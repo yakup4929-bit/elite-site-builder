@@ -176,9 +176,9 @@ export const PLANS: Record<PlanId, Plan> = {
     id: "ajans",
     name: { tr: "Ajans", en: "Agency", fr: "Agence" },
     tagline: {
-      tr: "Dil ve site sınırı yok, kendi markanla, API erişimiyle.",
-      en: "No language or site cap, under your own brand, with API access.",
-      fr: "Sans limite de langue ni de site, sous votre marque, avec accès API.",
+      tr: "Sınırsız dil, ayda 300 site, kendi markanla ve API erişimiyle.",
+      en: "Unlimited languages, 300 sites a month, your brand, API access.",
+      fr: "Langues illimitées, 300 sites par mois, votre marque, accès API.",
     },
     audience: {
       tr: "Müşterisi adına site üreten ajanslar ve stüdyolar için.",
@@ -187,7 +187,11 @@ export const PLANS: Record<PlanId, Plan> = {
     },
     price: { monthly: 249, yearlyMonthly: 199, currency: "EUR" },
     limits: {
-      sitesPerMonth: "all",
+      // Not "all": at ~$1.33 for a twenty-language site, an uncapped tier breaks
+      // even around 200 sites a month and loses money past that. The cap is set
+      // well above what an agency plausibly produces, so it never bites a real
+      // customer, but it closes the hole.
+      sitesPerMonth: 300,
       maxLocales: "all",
       choosableLocales: true,
       fixedLocales: [],
