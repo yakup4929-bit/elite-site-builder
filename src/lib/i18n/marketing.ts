@@ -216,7 +216,7 @@ const TR: MarketingCopy = {
     perMonth: "/ay",
     billedYearly: "yıllık ödemede",
     choose: "Bu paketi seç",
-    recommended: "En çok tercih edilen",
+    recommended: "En çok seçilen",
     comparisonTitle: "Paketler yan yana",
     featureColumn: "Özellik",
     unlimited: "Sınırsız",
