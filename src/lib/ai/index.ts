@@ -1,7 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { BlockType, LocalizedContent, SiteBlock, SiteConfig } from "@/types";
 import { describeLocale, normaliseLocales } from "@/lib/i18n/locales";
-import { applyLocaleQuota, getPlan, type Plan } from "@/lib/plans";
+import { applyLocaleQuota, blockTypesFor, getPlan, type Plan } from "@/lib/plans";
+import { findDensity, findTone } from "@/lib/options";
 
 /**
  * An identity-linked API key must say which workspace it acts in, or the API
@@ -17,8 +18,6 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
   ...(workspaceId ? { defaultHeaders: { "anthropic-workspace-id": workspaceId } } : {}),
 });
-
-const ALL_BLOCK_TYPES: BlockType[] = ["Hero", "Features", "About", "Pricing", "Contact", "Footer"];
 
 /**
  * Every language is produced in one request rather than generating once and
@@ -99,7 +98,19 @@ function buildSchema(locales: string[], blockTypes: BlockType[]) {
   };
 }
 
-function buildSystemPrompt(industry: string, locales: string[], defaultLocale: string, plan: Plan, blockTypes: BlockType[]) {
+function buildSystemPrompt(
+  industry: string,
+  locales: string[],
+  defaultLocale: string,
+  plan: Plan,
+  blockTypes: BlockType[],
+  toneId: string | undefined,
+  densityId: string | undefined,
+) {
+  // Tone is a paid control: on plans without it the default voice is used, so the
+  // prompt stays valid either way rather than branching the whole template.
+  const tone = findTone(plan.limits.toneControl ? toneId : undefined);
+  const density = findDensity(densityId);
   const localeLines = locales
     .map((tag) => {
       const info = describeLocale(tag);
@@ -118,6 +129,10 @@ Industry: ${industry}
 
 Languages — write every block in all of these:
 ${localeLines}
+
+Voice:
+${tone.promptHint}
+${density.promptHint}
 
 Rules for the copy:
 1. Write natively in each language. Do not translate the primary language word for word — an idiom that lands in one language falls flat in another. Match how a premium brand in that market actually writes.
@@ -156,6 +171,9 @@ export interface GenerateOptions {
   locales?: string[];
   defaultLocale?: string;
   planId?: string;
+  /** Ignored on plans without toneControl. */
+  tone?: string;
+  density?: string;
 }
 
 export interface GenerateResult {
@@ -173,15 +191,22 @@ export async function generateSiteConfig(options: GenerateOptions): Promise<Gene
   const locales = granted.length > 0 ? granted : [requestedDefault];
   const defaultLocale = locales.includes(requestedDefault) ? requestedDefault : locales[0]!;
 
-  const blockTypes =
-    plan.limits.allowedBlockTypes === "all" ? ALL_BLOCK_TYPES : plan.limits.allowedBlockTypes;
+  const blockTypes = blockTypesFor(plan);
 
   // Streamed because a many-language site can run tens of thousands of output
   // tokens, which would otherwise risk an HTTP timeout.
   const stream = anthropic.messages.stream({
     model: "claude-opus-5",
     max_tokens: tokenBudget(locales.length),
-    system: buildSystemPrompt(options.industry, locales, defaultLocale, plan, blockTypes),
+    system: buildSystemPrompt(
+      options.industry,
+      locales,
+      defaultLocale,
+      plan,
+      blockTypes,
+      options.tone,
+      options.density,
+    ),
     messages: [{ role: "user", content: options.prompt }],
     output_config: {
       format: { type: "json_schema", schema: buildSchema(locales, blockTypes) },

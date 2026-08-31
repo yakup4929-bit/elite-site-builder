@@ -1,9 +1,18 @@
 "use client";
 import React, { useMemo, useState } from "react";
+import Link from "next/link";
 import { SiteConfig } from "@/types";
 import { SitePreview } from "@/components/SitePreview";
 import { Loader2, Sparkles, X, Plus, AlertCircle } from "lucide-react";
-import { LOCALE_CATALOGUE, describeLocale, isValidLocaleTag } from "@/lib/i18n/locales";
+import { LOCALE_CATALOGUE, combinedReach, describeLocale, isValidLocaleTag } from "@/lib/i18n/locales";
+import {
+  DENSITIES,
+  DEFAULT_DENSITY,
+  DEFAULT_TONE,
+  TONES,
+  choiceHint,
+  choiceLabel,
+} from "@/lib/options";
 import { DEFAULT_UI_LOCALE, UI_LOCALES, t, type UiLocale } from "@/lib/i18n/ui";
 import { PLANS, PLAN_ORDER, DEFAULT_PLAN, planName, planTagline, type PlanId } from "@/lib/plans";
 
@@ -13,6 +22,8 @@ export default function BuilderPage() {
   const [prompt, setPrompt] = useState("");
   const [industry, setIndustry] = useState("");
   const [siteLocales, setSiteLocales] = useState<string[]>(["tr"]);
+  const [tone, setTone] = useState(DEFAULT_TONE);
+  const [density, setDensity] = useState(DEFAULT_DENSITY);
   const [localeDraft, setLocaleDraft] = useState("");
   const [config, setConfig] = useState<SiteConfig | null>(null);
   const [rejected, setRejected] = useState<string[]>([]);
@@ -29,6 +40,9 @@ export default function BuilderPage() {
     () => (canChooseLocales ? siteLocales : plan.limits.fixedLocales),
     [canChooseLocales, siteLocales, plan],
   );
+
+  // Speaker totals are indicative, so the figure is prefixed with "~" wherever shown.
+  const reach = useMemo(() => combinedReach(effectiveLocales), [effectiveLocales]);
 
   const addLocale = (tag: string) => {
     const trimmed = tag.trim();
@@ -58,6 +72,8 @@ export default function BuilderPage() {
           locales: effectiveLocales,
           defaultLocale: effectiveLocales[0],
           planId,
+          tone,
+          density,
         }),
       });
       const data = await res.json();
@@ -78,9 +94,13 @@ export default function BuilderPage() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <div className="fixed top-0 left-0 w-full bg-white/85 dark:bg-slate-900/85 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 z-50">
         <div className="px-6 py-3 flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-2 font-bold text-xl text-slate-800 dark:text-white shrink-0">
+          <Link
+            href="/"
+            className="flex items-center gap-2 font-bold text-xl text-slate-800 dark:text-white shrink-0 hover:opacity-80 transition-opacity"
+            title={t(uiLocale, "backToSite")}
+          >
             <Sparkles className="text-yellow-500" /> {t(uiLocale, "brand")}
-          </div>
+          </Link>
 
           <div className="flex gap-3 items-center flex-wrap flex-1 justify-end">
             <input
@@ -182,6 +202,49 @@ export default function BuilderPage() {
               <span className="text-slate-400 italic">{t(uiLocale, "planLocked")}</span>
             )}
           </div>
+
+          {/* Tone is a paid control; on plans without it the reason is shown rather
+              than a dead dropdown the user cannot explain. */}
+          <label className="flex items-center gap-2">
+            <span className="text-slate-500 dark:text-slate-400">{t(uiLocale, "tone")}</span>
+            {plan.limits.toneControl ? (
+              <select
+                value={tone}
+                onChange={(e) => setTone(e.target.value)}
+                title={choiceHint(TONES.find((x) => x.id === tone)!, uiLocale)}
+                className="px-2 py-1 rounded-md border border-slate-300 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+              >
+                {TONES.map((choice) => (
+                  <option key={choice.id} value={choice.id}>
+                    {choiceLabel(choice, uiLocale)}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <span className="text-slate-400 italic">{t(uiLocale, "toneLocked")}</span>
+            )}
+          </label>
+
+          <label className="flex items-center gap-2">
+            <span className="text-slate-500 dark:text-slate-400">{t(uiLocale, "density")}</span>
+            <select
+              value={density}
+              onChange={(e) => setDensity(e.target.value)}
+              className="px-2 py-1 rounded-md border border-slate-300 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+            >
+              {DENSITIES.map((choice) => (
+                <option key={choice.id} value={choice.id}>
+                  {choiceLabel(choice, uiLocale)}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {reach > 0 && (
+            <span className="text-slate-400">
+              {t(uiLocale, "reach")}: ~{reach} {t(uiLocale, "reachUnit")}
+            </span>
+          )}
 
           <label className="flex items-center gap-2 ml-auto">
             <span className="text-slate-500 dark:text-slate-400">{t(uiLocale, "interfaceLanguage")}</span>

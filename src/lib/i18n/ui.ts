@@ -24,6 +24,12 @@ type Dictionary = {
   localesDropped: string;
   interfaceLanguage: string;
   errorPrefix: string;
+  tone: string;
+  density: string;
+  toneLocked: string;
+  reach: string;
+  reachUnit: string;
+  backToSite: string;
 };
 
 const DICTIONARIES: Record<UiLocale, Dictionary> = {
@@ -42,6 +48,12 @@ const DICTIONARIES: Record<UiLocale, Dictionary> = {
     localesDropped: "Paketiniz nedeniyle eklenmeyen diller:",
     interfaceLanguage: "Arayüz dili",
     errorPrefix: "Hata",
+    tone: "Ton",
+    density: "Metin",
+    toneLocked: "Ton seçimi Profesyonel paketten itibaren",
+    reach: "Erişim",
+    reachUnit: "milyon kişi",
+    backToSite: "Siteye dön",
   },
   en: {
     brand: "Aeltay Studio",
@@ -58,6 +70,12 @@ const DICTIONARIES: Record<UiLocale, Dictionary> = {
     localesDropped: "Languages your plan did not include:",
     interfaceLanguage: "Interface language",
     errorPrefix: "Error",
+    tone: "Tone",
+    density: "Copy",
+    toneLocked: "Tone control from Professional upwards",
+    reach: "Reach",
+    reachUnit: "million people",
+    backToSite: "Back to site",
   },
   fr: {
     brand: "Aeltay Studio",
@@ -74,6 +92,12 @@ const DICTIONARIES: Record<UiLocale, Dictionary> = {
     localesDropped: "Langues non incluses par votre forfait :",
     interfaceLanguage: "Langue de l'interface",
     errorPrefix: "Erreur",
+    tone: "Ton",
+    density: "Texte",
+    toneLocked: "Choix du ton à partir de Professionnel",
+    reach: "Portée",
+    reachUnit: "millions de personnes",
+    backToSite: "Retour au site",
   },
 };
 

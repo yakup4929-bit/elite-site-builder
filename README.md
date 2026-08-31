@@ -16,7 +16,7 @@ tam bir web sitesi konfigürasyonu üretir — **istenen sayıda dilde** — ve 
 ## Çoklu dil
 
 Diller BCP-47 etiketi (`tr`, `en`, `pt-BR`, `zh-TW`). **Sabit bir liste yok** —
-`src/lib/i18n/locales.ts` içindeki ~40 dillik katalog sadece arayüzün yerel adı ve
+`src/lib/i18n/locales.ts` içindeki 110+ dillik katalog sadece arayüzün yerel adı ve
 yazı yönünü ağa çıkmadan bilmesi için var. Katalogda olmayan bir etiket de çalışır:
 etiketin kendisi gösterilir, yön birincil alt etiketten çıkarılır. Sağdan sola yazılan
 diller (Arapça, İbranice, Farsça, Urduca) üretilen sitede `dir` ayarını tetikler.
@@ -35,21 +35,33 @@ tr/en/fr) ile **üretilen sitenin dilleri** farklı seçimler.
 `src/lib/plans` dört katman tanımlıyor. Her sınır oradan okunuyor, koda gömülü kontrol
 yok — bir özelliği katmanlar arasında taşımak tek dosyalık değişiklik.
 
-| | Sade | Orta | Üst Seviye | Sınırsız |
+| | Başlangıç | Profesyonel | İşletme | Ajans |
 |---|---|---|---|---|
-| Dil sayısı | 1 (sabit) | 3 | 10 | sınırsız |
-| Dil seçimi | ✗ | ✓ | ✓ | ✓ |
-| Blok tipleri | 4 | hepsi | hepsi | hepsi |
-| Blok yenileme | ✗ | ✓ | ✓ | ✓ |
-| Tema varyantı | 1 | 3 | 5 | 8 |
-| Export | ✗ | HTML | Next.js | Next.js |
-| Marka kaldırma | ✗ | ✗ | ✓ | ✓ |
-| Özel alan adı | ✗ | ✗ | ✗ | ✓ |
+| Aylık | 19 € | **49 €** | 99 € | 249 € |
+| Yıllıkta aylığa | 15 € | 39 € | 79 € | 199 € |
+| Site / ay | 3 | 15 | 50 | sınırsız |
+| Dil | 2 | 6 | 20 | sınırsız |
+| Bölüm yenileme | ✗ | ✓ | ✓ | ✓ |
+| Ton seçimi | ✗ | ✓ | ✓ | ✓ |
+| Tema varyantı | 2 | 4 | 6 | 10 |
+| Dışa aktarma | HTML | Next.js | Next.js | Next.js |
+| Marka kaldırma | ✗ | ✓ | ✓ | ✓ |
+| Özel alan adı | ✗ | ✗ | ✓ | ✓ |
+| Kendi markanla | ✗ | ✗ | ✗ | ✓ |
+| API | ✗ | ✗ | ✗ | ✓ |
+
+**Fiyatlar nereden geliyor:** Ağustos 2026 piyasası — Wix ADI 17/29/39/159 $, Durable
+~12 $, 10Web 10–30 $, Framer 5–20 $. Çeviri ayrı faturalanıyor: Weglot **tek ek dil için
+15 €/ay**'dan başlayıp yirmi dilde 699 €'ya çıkıyor. Buradaki konum tam o boşluk — diller
+üretimin parçası, sonradan eklenen makine çevirisi değil. Yani altı dilli bir paket, bir
+site kurucu aboneliği **artı** bir Weglot katmanıyla yarışıyor ve ikisinin toplamının
+altında kalıyor.
+
+**Ücretsiz paket yok, bilerek:** her üretim gerçek model maliyeti doğuruyor ve bu ürünün
+en pahalı işlemi tam olarak o. Ücretsiz katman, en maliyetli eylemi sübvanse etmek olurdu.
 
 `applyLocaleQuota` neyin verildiğini **ve neyin düştüğünü** birlikte döndürüyor, böylece
 arayüz listeyi sessizce kırpmak yerine kullanıcıya ne kaybettiğini söyleyebiliyor.
-
-> Fiyatlar şu an placeholder. Kimseden ücret almadan önce gerçek rakamları gir.
 
 ## Kurulum
 
@@ -98,15 +110,20 @@ npm run lint     # Next 16'da lint build'den ayrı çalışır
 ```
 src/
   app/
-    page.tsx              demo site (MOCK_SITE_CONFIG — örnek veri, marka değil)
+    page.tsx              tanıtım sayfası (landing)
+    fiyatlar/page.tsx     fiyat sayfası + karşılaştırma tablosu
+    demo/page.tsx         örnek site (MOCK_SITE_CONFIG — demo verisi, marka değil)
     builder/page.tsx      builder arayüzü
     api/generate/route.ts üretim endpoint'i
   lib/
     ai/index.ts           Claude çağrısı + dinamik JSON şeması
     i18n/locales.ts       dil kataloğu, yön, normalleştirme
-    i18n/ui.ts            arayüz metinleri (tr/en/fr)
-    plans/index.ts        paketler ve kotalar
+    i18n/ui.ts            builder arayüz metinleri (tr/en/fr)
+    i18n/marketing.ts     tanıtım ve fiyat sayfası metinleri (tr/en/fr)
+    options/index.ts      ton ve metin yoğunluğu seçenekleri
+    plans/index.ts        paketler, fiyatlar ve kotalar
   components/
+    marketing/            tanıtım sayfası navigasyonu, alt bilgi, dil hafızası
     SitePreview.tsx       aktif dil + yön, blok çözümleme
     LocaleSwitcher.tsx    site içi dil değiştirici
     BlockRenderer.tsx     type -> bileşen eşlemesi
