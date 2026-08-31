@@ -32,42 +32,46 @@ export const Pricing: React.FC<PricingProps> = ({ block, config }) => {
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
               className={`p-8 rounded-3xl border transition-all ${
-                index === 1 
-                ? "bg-white dark:bg-slate-800 border-transparent shadow-2xl scale-105 relative" 
-                : "bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700"
+                plan.badge
+                  ? "bg-white dark:bg-slate-800 border-transparent shadow-2xl scale-105 relative"
+                  : "bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700"
               }`}
             >
-              {index === 1 && (
+              {plan.badge && (
                 <span 
                   className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold text-white uppercase tracking-wider"
                   style={{ backgroundColor: config.primaryColor }}
                 >
-                  Most Popular
+                  {plan.badge}
                 </span>
               )}
               <h3 className="text-2xl font-bold text-center mb-4 text-slate-900 dark:text-white">{plan.title}</h3>
               <div className="text-center mb-8">
-                <span className="text-5xl font-extrabold text-slate-900 dark:text-white">${plan.description}</span>
-                <span className="text-slate-500 dark:text-slate-400">/month</span>
+                {/* The price arrives already formatted with its own currency — a hardcoded
+                    "$" and "/month" turned a one-off tailoring fee into a dollar subscription. */}
+                <span className="text-5xl font-extrabold text-slate-900 dark:text-white">{plan.description}</span>
+                {plan.priceNote && (
+                  <span className="text-slate-500 dark:text-slate-400"> {plan.priceNote}</span>
+                )}
               </div>
               <ul className="space-y-4 mb-8">
-                {["Unlimited Projects", "AI Integration", "Priority Support", "Custom Domain"].map((feat, i) => (
+                {(plan.features ?? []).map((feat, i) => (
                   <li key={i} className="flex items-center gap-3 text-slate-600 dark:text-slate-400">
                     <Check size={18} style={{ color: config.primaryColor }} />
                     {feat}
                   </li>
                 ))}
               </ul>
-              <button 
+              {plan.ctaText && <button
                 className={`w-full py-4 rounded-xl font-bold transition-all ${
-                  index === 1 
-                  ? "text-white" 
-                  : "border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+                  plan.badge
+                    ? "text-white"
+                    : "border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
-                style={index === 1 ? { backgroundColor: config.primaryColor } : {}}
+                style={plan.badge ? { backgroundColor: config.primaryColor } : {}}
               >
-                Get Started
-              </button>
+                {plan.ctaText}
+              </button>}
             </motion.div>
           ))}
         </div>

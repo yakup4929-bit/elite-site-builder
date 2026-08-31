@@ -13,7 +13,7 @@ interface HeroProps {
 }
 
 export const Hero: React.FC<HeroProps> = ({ block, config }) => {
-  const { title, subtitle, description, ctaText, ctaLink } = block.content;
+  const { title, subtitle, description, ctaText, ctaLink, secondaryCtaText, secondaryCtaLink } = block.content;
 
   return (
     <section className="relative overflow-hidden py-24 lg:py-32">
@@ -44,12 +44,14 @@ export const Hero: React.FC<HeroProps> = ({ block, config }) => {
             >
               {ctaText}
             </a>
-            <a 
-              href="#more" 
-              className="px-8 py-4 rounded-full font-semibold border transition-all hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
-            >
-              Learn More
-            </a>
+            {secondaryCtaText && (
+              <a
+                href={secondaryCtaLink || "#more"}
+                className="px-8 py-4 rounded-full font-semibold border transition-all hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
+              >
+                {secondaryCtaText}
+              </a>
+            )}
           </div>
         </motion.div>
       </div>

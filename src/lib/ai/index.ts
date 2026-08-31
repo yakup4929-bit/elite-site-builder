@@ -35,6 +35,8 @@ function buildSchema(locales: string[], blockTypes: BlockType[]) {
       description: { type: "string" },
       ctaText: { type: "string" },
       ctaLink: { type: "string" },
+      secondaryCtaText: { type: "string" },
+      secondaryCtaLink: { type: "string" },
       items: {
         type: "array",
         items: {
@@ -42,6 +44,10 @@ function buildSchema(locales: string[], blockTypes: BlockType[]) {
           properties: {
             title: { type: "string" },
             description: { type: "string" },
+            priceNote: { type: "string" },
+            features: { type: "array", items: { type: "string" } },
+            ctaText: { type: "string" },
+            badge: { type: "string" },
           },
           required: ["title", "description"],
           additionalProperties: false,
@@ -124,8 +130,19 @@ Rules for the design:
 6. Colours must be sophisticated and appropriate for the industry.
 7. Use ${blockLimit}, chosen from: ${blockTypes.join(", ")}. Each type may appear at most once, ordered as a logical narrative.
 8. Give each block a unique id ("b1", "b2", ...).
-9. For Features and Pricing use "items". For a Pricing item, "description" is the price amount only (e.g. "99").
-10. Copy must be professional and high-converting — never generic filler.`;
+9. For Features and Pricing use "items".
+10. Pricing items carry everything the card shows, because nothing on it is hardcoded:
+   - "description" is the price exactly as it should appear, including the currency in the
+     convention of that market (e.g. "48.000 ₺", "1.250 €"). Never assume dollars.
+   - "priceNote" says what the price covers ("gecelik", "kişi başı", "tek seferlik"). Omit it
+     when the price is a one-off and a suffix would mislead — do not invent "/ay" for
+     something that is not a subscription.
+   - "features" lists 3-5 things that tier actually includes, specific to this business.
+   - "ctaText" is that tier's button label.
+   - "badge" marks at most ONE tier as the recommended choice; omit it on the others.
+11. A Hero may carry "secondaryCtaText" for a lower-emphasis action. Write it in the same
+   language as the rest; omit it if one call to action is enough.
+12. Copy must be professional and high-converting — never generic filler.`;
 }
 
 /** Output grows roughly linearly with language count; give the model room for all of them. */

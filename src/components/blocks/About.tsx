@@ -30,7 +30,7 @@ export const About: React.FC<AboutProps> = ({ block, config }) => {
             />
             <img 
               src={image || "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800"} 
-              alt="About Us" 
+              alt={title || ""} 
               className="relative z-10 rounded-3xl shadow-2xl w-full h-[500px] object-cover"
             />
           </motion.div>

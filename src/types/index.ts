@@ -6,10 +6,22 @@ export interface BlockContent {
   description?: string;
   ctaText?: string;
   ctaLink?: string;
+  /** Optional second, lower-emphasis call to action. The button is hidden when absent. */
+  secondaryCtaText?: string;
+  secondaryCtaLink?: string;
   items?: Array<{
     title: string;
+    /** For Pricing this is the price as it should read on screen, currency included. */
     description: string;
     icon?: string;
+    /** Pricing: what the price covers ("gecelik", "tek seferlik"). Omitted when meaningless. */
+    priceNote?: string;
+    /** Pricing: what this tier includes. */
+    features?: string[];
+    /** Pricing: button label for this tier. */
+    ctaText?: string;
+    /** Pricing: highlight label ("En Çok Tercih Edilen"). At most one item should carry it. */
+    badge?: string;
   }>;
   image?: string;
 }
