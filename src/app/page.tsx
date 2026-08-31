@@ -49,7 +49,7 @@ export default function Home() {
               className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-semibold hover:opacity-90 transition-opacity"
             >
               {t.hero.primaryCta}
-              <ArrowRight size={17} />
+              <ArrowRight size={17} className="rtl:rotate-180" />
             </Link>
             <Link
               href="/demo"
@@ -226,7 +226,7 @@ export default function Home() {
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-slate-300 dark:border-slate-700 font-semibold text-slate-900 dark:text-white hover:bg-white dark:hover:bg-slate-900 transition-colors"
             >
               {t.pricingTeaser.cta}
-              <ArrowRight size={16} />
+              <ArrowRight size={16} className="rtl:rotate-180" />
             </Link>
           </div>
         </div>
@@ -258,7 +258,7 @@ export default function Home() {
             className="mt-8 inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-semibold hover:opacity-90 transition-opacity"
           >
             {t.finalCta.cta}
-            <ArrowRight size={17} />
+            <ArrowRight size={17} className="rtl:rotate-180" />
           </Link>
         </div>
       </section>
