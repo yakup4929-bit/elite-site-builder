@@ -1,10 +1,10 @@
 
 "use client";
 import React from "react";
-import { SiteBlock } from "@/types";
+import { ResolvedBlock } from "@/types";
 
 interface FooterProps {
-  block: SiteBlock;
+  block: ResolvedBlock;
   config: {
     primaryColor: string;
   };

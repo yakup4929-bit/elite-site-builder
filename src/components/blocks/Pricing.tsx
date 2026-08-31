@@ -2,11 +2,11 @@
 "use client";
 import React from "react";
 import { motion } from "framer-motion";
-import { SiteBlock } from "@/types";
+import { ResolvedBlock } from "@/types";
 import { Check } from "lucide-react";
 
 interface PricingProps {
-  block: SiteBlock;
+  block: ResolvedBlock;
   config: {
     primaryColor: string;
   };

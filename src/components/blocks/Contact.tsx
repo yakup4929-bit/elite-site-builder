@@ -1,12 +1,11 @@
 
 "use client";
 import React from "react";
-import { motion } from "framer-motion";
-import { SiteBlock } from "@/types";
+import { ResolvedBlock } from "@/types";
 import { Mail, Phone, MapPin } from "lucide-react";
 
 interface ContactProps {
-  block: SiteBlock;
+  block: ResolvedBlock;
   config: {
     primaryColor: string;
   };
