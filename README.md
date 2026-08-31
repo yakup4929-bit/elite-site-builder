@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Aeltay Studio
 
-## Getting Started
+Aeltay ailesinin site üretme aracı. Bir cümlelik brief ve sektör bilgisinden, Claude ile
+tam bir web sitesi konfigürasyonu üretir ve anında canlı önizler.
 
-First, run the development server:
+## Nasıl çalışıyor
+
+1. `/builder` sayfasında sektör + brief giriyorsun.
+2. `POST /api/generate` isteği `src/lib/ai/index.ts` üzerinden Claude'a gidiyor.
+3. Model, **structured output** ile `SiteConfig` şemasına birebir uyan JSON döndürüyor
+   (bkz. `SITE_CONFIG_SCHEMA`) — markdown ayıklama veya `JSON.parse` kumarı yok.
+4. `BlockRenderer` gelen blokları (Hero, Features, About, Pricing, Contact, Footer)
+   sırayla React bileşenlerine basıyor.
+
+## Kurulum
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`.env.local` dosyasına Anthropic API anahtarını ekle:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+ANTHROPIC_API_KEY=sk-ant-...
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Anahtar [Anthropic Console](https://console.anthropic.com/settings/keys) üzerinden alınır.
+Anahtar yoksa `/api/generate` 500 döner ve sebebini açıkça yazar.
 
-## Learn More
+```bash
+npm run dev      # http://localhost:3000
+npm run build    # production build (strict TS kontrolleri açık)
+npm run lint     # Next 16'da lint build'den ayrı çalışır
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Yapı
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+src/
+  app/
+    page.tsx              demo site (MOCK_SITE_CONFIG — örnek veri, marka değil)
+    builder/page.tsx      builder arayüzü
+    api/generate/route.ts üretim endpoint'i
+  lib/ai/index.ts         Claude çağrısı + JSON şeması
+  components/
+    BlockRenderer.tsx     type -> bileşen eşlemesi
+    blocks/               Hero, Features, About, Pricing, Contact, Footer
+  types/index.ts          SiteConfig / SiteBlock / BlockContent
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Yeni blok tipi eklemek için: `types/index.ts`'e `BlockType` ekle, `blocks/` altına
+bileşeni yaz, `BlockRenderer`'a kaydet, `lib/ai/index.ts`'teki `BLOCK_TYPES`'a ekle.
+Dördü de yapılmazsa model o bloğu ya hiç üretmez ya da renderer "not yet implemented" basar.
 
-## Deploy on Vercel
+## Dikkat: dosya kodlaması
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Kaynak dosyalar **UTF-8** olmalı. Türkçe karakter içeren dosyalar CP1254 (Windows Türkçe)
+kaydedilirse Turbopack şu hatayı verir ve sebebini söylemez:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+Reading source code for parsing failed
+- invalid utf-8 sequence of 1 bytes from index NNNN
+```
+
+Tespit:
+
+```bash
+for f in $(find src -name '*.ts*'); do iconv -f UTF-8 -t UTF-8 "$f" >/dev/null 2>&1 || echo "BAD $f"; done
+```
+
+Düzeltme: `iconv -f CP1254 -t UTF-8 dosya > tmp && mv tmp dosya`
