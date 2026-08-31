@@ -10,10 +10,15 @@ const anthropic = new Anthropic({
 });
 
 /**
- * Conversational editing runs on Haiku 4.5, not the model that generated the
- * site. "Shorten the headline" does not need the reasoning that writing a whole
- * multilingual site does, and at roughly a cent per turn a customer can iterate
- * freely instead of being rationed.
+ * Conversational editing runs on Sonnet 5, not on the model that generated the
+ * site and not on the cheapest one available.
+ *
+ * Haiku 4.5 was tried first and is three times cheaper, but it missed the point
+ * of the instruction: asked to make a headline SHORTER it returned a longer one
+ * in Turkish while shortening the English. Editing is judgement about wording,
+ * across languages, and that is exactly where the cheaper model gives way. At
+ * roughly a cent per turn the difference is immaterial next to the ~$0.42 the
+ * generation itself costs, so the quality is worth buying.
  *
  * The model returns a reply plus a list of operations rather than a rewritten
  * config. Asking a small model to echo back a whole site risks it quietly
@@ -21,10 +26,10 @@ const anthropic = new Anthropic({
  * anything it does not mention is guaranteed untouched.
  */
 
-const EDIT_MODEL = "claude-haiku-4-5";
+const EDIT_MODEL = "claude-sonnet-5";
 
-// Haiku 4.5 pricing per million tokens (Aug 2026).
-const PRICE_PER_MTOK = { input: 1, output: 5, cacheRead: 0.1, cacheWrite: 1.25 };
+// Sonnet 5 standard pricing per million tokens (Aug 2026).
+const PRICE_PER_MTOK = { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 };
 
 const TEXT_FIELDS = [
   "title",
