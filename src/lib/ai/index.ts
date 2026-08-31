@@ -176,9 +176,47 @@ export interface GenerateOptions {
   density?: string;
 }
 
+/**
+ * What one generation actually consumed. Unit economics decide whether a plan
+ * is priced above its own cost, so this is measured on every run rather than
+ * estimated — thinking tokens in particular are billed as output and are
+ * invisible unless you read them off the response.
+ */
+export interface GenerationUsage {
+  inputTokens: number;
+  outputTokens: number;
+  cacheReadTokens: number;
+  cacheWriteTokens: number;
+  /** USD, from the model's list price at time of writing. */
+  estimatedCostUsd: number;
+  model: string;
+  localeCount: number;
+}
+
 export interface GenerateResult {
   config: SiteConfig;
   rejectedLocales: string[];
+  usage: GenerationUsage;
+}
+
+// Claude Opus 5 list price per million tokens (Aug 2026).
+const PRICE_PER_MTOK = { input: 5, output: 25, cacheRead: 0.5, cacheWrite: 6.25 };
+
+function priceUsage(usage: {
+  input_tokens: number;
+  output_tokens: number;
+  cache_read_input_tokens?: number | null;
+  cache_creation_input_tokens?: number | null;
+}): number {
+  const cacheRead = usage.cache_read_input_tokens ?? 0;
+  const cacheWrite = usage.cache_creation_input_tokens ?? 0;
+  return (
+    (usage.input_tokens * PRICE_PER_MTOK.input +
+      usage.output_tokens * PRICE_PER_MTOK.output +
+      cacheRead * PRICE_PER_MTOK.cacheRead +
+      cacheWrite * PRICE_PER_MTOK.cacheWrite) /
+    1_000_000
+  );
 }
 
 export async function generateSiteConfig(options: GenerateOptions): Promise<GenerateResult> {
@@ -241,7 +279,23 @@ export async function generateSiteConfig(options: GenerateOptions): Promise<Gene
     return { id: block.id, type: block.type, content };
   });
 
+  const usage: GenerationUsage = {
+    inputTokens: response.usage.input_tokens,
+    outputTokens: response.usage.output_tokens,
+    cacheReadTokens: response.usage.cache_read_input_tokens ?? 0,
+    cacheWriteTokens: response.usage.cache_creation_input_tokens ?? 0,
+    estimatedCostUsd: priceUsage(response.usage),
+    model: response.model,
+    localeCount: locales.length,
+  };
+
+  console.log(
+    `[generate] ${locales.length} locale(s), in=${usage.inputTokens} out=${usage.outputTokens} ` +
+      `cost=$${usage.estimatedCostUsd.toFixed(4)}`,
+  );
+
   return {
+    usage,
     config: {
       id: raw.id,
       name: raw.name,
