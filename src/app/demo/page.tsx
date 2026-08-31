@@ -4,6 +4,7 @@ import { SiteConfig } from "@/types";
 import { SitePreview } from "@/components/SitePreview";
 import { SiteNav, SiteFooter } from "@/components/marketing/SiteChrome";
 import { useUiLocale } from "@/components/marketing/useUiLocale";
+import { uiDir } from "@/lib/i18n/marketing";
 
 /**
  * Demo data for the sample luxury-watch site — not the product's own branding.
@@ -68,7 +69,7 @@ export default function DemoPage() {
   const [config, setConfig] = useState<SiteConfig>(MOCK_SITE_CONFIG);
 
   return (
-    <main className="min-h-screen bg-white dark:bg-slate-950">
+    <main dir={uiDir(uiLocale)} className="min-h-screen bg-white dark:bg-slate-950">
       <SiteNav locale={uiLocale} onLocaleChange={setUiLocale} />
       <div className="fixed bottom-6 right-6 z-40 flex gap-2">
         <button

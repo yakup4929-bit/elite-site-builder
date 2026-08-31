@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Check, Minus } from "lucide-react";
 import { SiteNav, SiteFooter } from "@/components/marketing/SiteChrome";
 import { useUiLocale } from "@/components/marketing/useUiLocale";
-import { marketing } from "@/lib/i18n/marketing";
+import { marketing, uiDir } from "@/lib/i18n/marketing";
 import {
   PLANS,
   PLAN_ORDER,
@@ -60,7 +60,7 @@ export default function PricingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950">
+    <div dir={uiDir(locale)} className="min-h-screen bg-white dark:bg-slate-950">
       <SiteNav locale={locale} onLocaleChange={setLocale} />
 
       <section className="mx-auto max-w-6xl px-6 pt-20 pb-12 text-center">

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Check, X, Sparkles, Languages, Zap, MoveHorizontal } from "lucide-react";
 import { SiteNav, SiteFooter } from "@/components/marketing/SiteChrome";
 import { useUiLocale } from "@/components/marketing/useUiLocale";
-import { marketing } from "@/lib/i18n/marketing";
+import { marketing, uiDir } from "@/lib/i18n/marketing";
 import { LOCALE_CATALOGUE, LOCALE_COUNT } from "@/lib/i18n/locales";
 import { PLANS, PLAN_ORDER, planName, planTagline } from "@/lib/plans";
 
@@ -16,7 +16,7 @@ export default function Home() {
   const t = marketing(locale);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950">
+    <div dir={uiDir(locale)} className="min-h-screen bg-white dark:bg-slate-950">
       <SiteNav locale={locale} onLocaleChange={setLocale} />
 
       {/* ---------------------------------------------------------------- hero */}
